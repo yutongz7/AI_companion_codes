@@ -1,0 +1,264 @@
+---
+title: "AI Companions Analysis"
+output: html_notebook
+---
+```{r setup, include=FALSE}
+library(psych)
+library(ggplot2)
+library(readr)
+library(car)
+library(pwr)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(sjPlot)
+library(patchwork)
+library(interactions)
+library(mediation)
+library(ggeffects)
+library(broom)
+library(sampleSelection)
+library(tidyverse)
+library(psych)
+library(sampleSelection)
+```
+
+```{r}
+data <- read_csv("./chatbot_interaction_data.csv", show_col_types = FALSE)
+```
+
+```{r}
+percentage <- data %>%
+  summarise(
+    total = sum(chatbot_use_social_relational == 0, na.rm = TRUE),
+    matching = sum(chatbot_use_social_relational == 0 & relational_flag > 0, na.rm = TRUE)
+  ) %>%
+  mutate(percentage = matching / total * 100)
+
+percentage$percentage
+```
+
+
+
+# intensity + companionship
+```{r}
+model <- lm(well_being ~ z_intensity + chatbot_use_social_relational
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- lm(well_being ~ z_intensity + relational_flag
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ z_intensity + z_history_social_pct + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+
+# intensity x companionship
+```{r}
+model <- lm(well_being ~ z_intensity * chatbot_use_social_relational
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ z_intensity * relational_flag
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ z_intensity * z_history_social_pct + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+
+# companionship x self-disclosure
+```{r}
+model <- lm(well_being ~ chatbot_use_social_relational * z_self_disclosure
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ relational_flag * z_self_disclosure
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ z_self_disclosure + z_history_social_pct + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2stage"
+)
+summary(model)
+```
+
+
+
+# chatbot interaction ~ social network
+```{r}
+model <- lm(z_intensity ~ z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(chatbot_use_social_relational ~ z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- lm(relational_flag ~ z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = z_history_social_pct ~ z_social_network_scale + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+```{r}
+model <- lm(z_self_disclosure ~ z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+# social network x intensity
+```{r}
+model <- lm(well_being ~ z_intensity * z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+# social network x companionship
+```{r}
+model <- lm(well_being ~ chatbot_use_social_relational * z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- lm(well_being ~ relational_flag * z_social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ z_history_social_pct * z_social_network_scale + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+# social network x topic-social support
+```{r}
+model_wellbeing <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ topic_emotional_support_check * z_social_network_scale + tenure_of_activity + male + non_binary + age,
+  data = data,
+  method = "2-step"
+)
+summary(model_wellbeing)
+```
+
+
