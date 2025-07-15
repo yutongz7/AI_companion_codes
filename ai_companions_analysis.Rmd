@@ -24,7 +24,7 @@ library(sampleSelection)
 ```
 
 ```{r}
-data <- read_csv("./chatbot_interaction_data.csv", show_col_types = FALSE)
+data <- read_csv("./chatbot_interaction_data_sample.csv", show_col_types = FALSE)
 ```
 
 ```{r}
